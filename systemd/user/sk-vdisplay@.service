@@ -4,7 +4,9 @@ After=graphical-session.target
 
 [Service]
 ExecStart=%h/.local/bin/sk-vdisplay-screen %i
-ExecStartPost=/bin/sh -c 'sleep 8; %h/.local/bin/sk-vdisplay-layout'
+# The desktop (e.g. Cinnamon) re-arranges outputs itself shortly after a hotplug,
+# so apply the layout once the screen is up and again after that settles.
+ExecStartPost=/bin/sh -c 'sleep 8; %h/.local/bin/sk-vdisplay-layout; (sleep 15; %h/.local/bin/sk-vdisplay-layout) &'
 Restart=on-failure
 RestartSec=5
 

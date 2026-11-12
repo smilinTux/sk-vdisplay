@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.1
+
+- sk-vdisplay@: re-apply the layout 15s after start too, since the desktop re-arranges outputs after a hotplug (seen when adding a 4th screen).
+
 ## v0.1.0
 
 First release.
