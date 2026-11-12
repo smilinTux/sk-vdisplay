@@ -1,0 +1,26 @@
+#!/bin/sh
+# sk-cam-recv <name>: receive a device's camera (+ mic) stream and expose it as a
+# webcam (v4l2loopback DEV) and a microphone (PipeWire source "<Label> Mic").
+# Reads cams/<name>.env from the instance:
+#   SRC         ffmpeg input URL (srt://0.0.0.0:PORT?mode=listener, rtsp://..., ...)
+#   INPUT_OPTS  extra ffmpeg input options (e.g. -rtsp_transport tcp)
+#   DEV         /dev/videoN (must match video_nr in the v4l2loopback config)
+#   AUDIO       1 (default) to route the stream's audio to the mic, 0 for video only
+#   WIDTH/HEIGHT/FPS  webcam format (default 1280x720@30)
+set -eu
+. "$(dirname "$(readlink -f "$0")")/sk-vdisplay-common.sh"
+f="$SKV_INSTANCE/cams/$1.env"
+[ -f "$f" ] || skv_die "no camera config $f"
+# shellcheck disable=SC1090
+. "$f"
+W="${WIDTH:-1280}"; H="${HEIGHT:-720}"; R="${FPS:-30}"
+sink="sk_$1_mic_in"
+set -- -hide_banner -loglevel warning -fflags nobuffer -flags low_delay
+# shellcheck disable=SC2086
+set -- "$@" ${INPUT_OPTS:-} -i "$SRC" \
+	-map 0:v:0 -vf "scale=$W:$H:force_original_aspect_ratio=decrease,pad=$W:$H:(ow-iw)/2:(oh-ih)/2,format=yuv420p" \
+	-r "$R" -f v4l2 "$DEV"
+if [ "${AUDIO:-1}" = 1 ]; then
+	set -- "$@" -map 0:a:0 -ac 2 -ar 48000 -f pulse -device "$sink" "sk-cam"
+fi
+exec ffmpeg "$@"

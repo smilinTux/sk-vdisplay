@@ -1,0 +1,17 @@
+#!/bin/sh
+# sk-sunshine <name>: run a Sunshine instance that streams one virtual screen.
+# Its config dir is ~/.config/sk-vdisplay/sunshine/<name>/ (written by install.sh).
+set -eu
+. "$(dirname "$(readlink -f "$0")")/sk-vdisplay-common.sh"
+skv_load_conf
+line=$(skv_screen "$1")
+[ -n "$line" ] || skv_die "screen '$1' not in $SKV_INSTANCE/screens.conf"
+size=$(skv_size "$(echo "$line" | awk '{print $2}')")
+out=""
+for _ in $(seq 1 30); do
+	out=$(skv_output_for_size "$size")
+	[ -n "$out" ] && break
+	sleep 2
+done
+[ -n "$out" ] || skv_die "no virtual monitor of size $size is connected (is sk-vdisplay@$1 running?)"
+exec /usr/bin/sunshine "$SKV_STATE/sunshine/$1/sunshine.conf" "output_name=$out"

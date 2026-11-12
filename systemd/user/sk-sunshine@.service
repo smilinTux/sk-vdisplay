@@ -1,0 +1,15 @@
+[Unit]
+Description=Sunshine streaming the sk-vdisplay screen %i
+After=graphical-session.target sk-vdisplay@%i.service
+Wants=sk-vdisplay@%i.service
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
+[Service]
+ExecStartPre=/bin/sleep 5
+ExecStart=%h/.local/bin/sk-sunshine %i
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=graphical-session.target

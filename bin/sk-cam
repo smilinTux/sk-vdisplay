@@ -1,0 +1,31 @@
+#!/bin/sh
+# sk-cam <name> <on|off> [arg]   |   sk-cam list
+# Turns a device camera on or off. The receiver (sk-cam@<name>) is started or
+# stopped here; if cams/<name>.env sets ON_CMD / OFF_CMD they are run too
+# (e.g. an ssh command that starts the sender on a Windows box). "$ARG" in
+# those commands is the optional third argument (e.g. front|rear).
+set -eu
+. "$(dirname "$(readlink -f "$0")")/sk-vdisplay-common.sh"
+if [ "${1:-}" = list ]; then
+	for f in "$SKV_INSTANCE"/cams/*.env; do
+		n=$(basename "$f" .env)
+		printf '%-10s %-8s %s\n' "$n" "$(systemctl --user is-active "sk-cam@$n" || true)" "$(. "$f"; echo "${LABEL:-$n} Cam on ${DEV:-?}")"
+	done
+	exit 0
+fi
+[ $# -ge 2 ] || { echo "usage: sk-cam <name> <on|off> [arg] | sk-cam list" >&2; exit 2; }
+name="$1"; act="$2"; ARG="${3:-}"; export ARG
+f="$SKV_INSTANCE/cams/$name.env"
+[ -f "$f" ] || skv_die "no camera config $f"
+# shellcheck disable=SC1090
+. "$f"
+case "$act" in
+	on)
+		systemctl --user start "sk-cam@$name"
+		[ -z "${ON_CMD:-}" ] || sh -c "$ON_CMD" ;;
+	off)
+		[ -z "${OFF_CMD:-}" ] || sh -c "$OFF_CMD" || true
+		# a listener (srt mode=listener) can stay up idle; pull sources stop
+		case "$SRC" in *mode=listener*) ;; *) systemctl --user stop "sk-cam@$name" ;; esac ;;
+	*) skv_die "action must be on|off" ;;
+esac

@@ -1,0 +1,9 @@
+#!/bin/sh
+# sk-vdisplay-screen <name>: run the virtual monitor for a screen from screens.conf.
+set -eu
+. "$(dirname "$(readlink -f "$0")")/sk-vdisplay-common.sh"
+skv_load_conf
+line=$(skv_screen "$1")
+[ -n "$line" ] || skv_die "screen '$1' not in $SKV_INSTANCE/screens.conf"
+mode=$(echo "$line" | awk '{print $2}')
+exec sk-vdisplay "$mode" "SK-$1"

@@ -1,0 +1,19 @@
+#!/bin/sh
+# sk-vdisplay-layout: place every connected virtual screen around the anchor
+# output (e.g. eDP-1) as screens.conf says. Safe to run any time.
+set -eu
+. "$(dirname "$(readlink -f "$0")")/sk-vdisplay-common.sh"
+skv_load_conf
+args="--output $ANCHOR --primary"
+skv_screens | while read -r name mode pos _port; do
+	size=$(skv_size "$mode")
+	out=$(skv_output_for_size "$size")
+	[ -n "$out" ] || continue
+	case "$pos" in
+		left-of|right-of|above|below) ;;
+		*) skv_die "screen $name: position must be left-of|right-of|above|below, got '$pos'" ;;
+	esac
+	printf ' --output %s --mode %s --%s %s' "$out" "$size" "$pos" "$ANCHOR"
+done > "${XDG_RUNTIME_DIR:-/tmp}/sk-vdisplay-layout.args"
+# shellcheck disable=SC2046
+xrandr $args $(cat "${XDG_RUNTIME_DIR:-/tmp}/sk-vdisplay-layout.args")

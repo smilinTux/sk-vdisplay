@@ -1,0 +1,11 @@
+[Unit]
+Description=sk-vdisplay camera/mic %i -> v4l2loopback webcam + PipeWire mic
+After=pipewire-pulse.service
+
+[Service]
+ExecStart=%h/.local/bin/sk-cam-recv %i
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
