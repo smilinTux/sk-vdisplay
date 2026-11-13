@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.3
+
+- AUDIO_SCREENS in sk-vdisplay.conf picks which screens stream sound (default all). Other screens get `stream_audio = false`, so connecting them no longer moves sound off the host and mutes its speakers.
+
 ## v0.1.2
 
 - sk-cam-recv: each feed gets its own app name and never falls back to the default output (a missing or moved feed played the device mic into the speakers: feedback).

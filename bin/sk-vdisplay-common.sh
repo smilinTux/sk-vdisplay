@@ -1,7 +1,7 @@
 # Shared helpers, sourced by the sk-* scripts. POSIX sh.
 #
 # The instance (your private config) lives in a directory with:
-#   sk-vdisplay.conf   HOST_LABEL=..., ANCHOR=eDP-1
+#   sk-vdisplay.conf   HOST_LABEL=..., ANCHOR=eDP-1, AUDIO_SCREENS="tv" (or all / none)
 #   screens.conf       one virtual screen per line (see examples/instance)
 #   cams/<name>.env    one camera/mic source per file
 # Its path is the symlink ~/.config/sk-vdisplay/instance (made by install.sh)
@@ -19,6 +19,7 @@ skv_load_conf() {
 	. "$SKV_INSTANCE/sk-vdisplay.conf"
 	HOST_LABEL="${HOST_LABEL:-$(hostname -s)}"
 	ANCHOR="${ANCHOR:-eDP-1}"
+	AUDIO_SCREENS="${AUDIO_SCREENS-all}"
 }
 
 # Print the screens.conf line for a screen name: "name mode position port"
