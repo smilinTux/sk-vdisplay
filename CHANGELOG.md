@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.2
+
+- sk-cam-recv: each feed gets its own app name and never falls back to the default output (a missing or moved feed played the device mic into the speakers: feedback).
+- Feed sinks are labelled "<Label> Mic feed (not a speaker)" in sound settings.
+
 ## v0.1.1
 
 - sk-vdisplay@: re-apply the layout 15s after start too, since the desktop re-arranges outputs after a hotplug (seen when adding a 4th screen).

@@ -14,13 +14,19 @@ f="$SKV_INSTANCE/cams/$1.env"
 # shellcheck disable=SC1090
 . "$f"
 W="${WIDTH:-1280}"; H="${HEIGHT:-720}"; R="${FPS:-30}"
-sink="sk_$1_mic_in"
+name="$1"; sink="sk_$1_mic_in"
 set -- -hide_banner -loglevel warning -fflags nobuffer -flags low_delay
 # shellcheck disable=SC2086
 set -- "$@" ${INPUT_OPTS:-} -i "$SRC" \
 	-map 0:v:0 -vf "scale=$W:$H:force_original_aspect_ratio=decrease,pad=$W:$H:(ow-iw)/2:(oh-ih)/2,format=yuv420p" \
 	-r "$R" -f v4l2 "$DEV"
 if [ "${AUDIO:-1}" = 1 ]; then
-	set -- "$@" -map 0:a:0 -ac 2 -ar 48000 -f pulse -device "$sink" "sk-cam"
+	# Own app name per camera (so the sound panel's per-app memory cannot move
+	# one feed onto another or onto the speakers), and never fall back to the
+	# default output if the feed sink is missing: that loops the device's mic
+	# into the laptop speakers and back into the laptop mic.
+	PULSE_PROP="node.dont-fallback=true node.dont-reconnect=true node.dont-move=true media.role=Production"
+	export PULSE_PROP
+	set -- "$@" -map 0:a:0 -ac 2 -ar 48000 -f pulse -name "sk-cam-$name" -device "$sink" "sk-cam $name"
 fi
 exec ffmpeg "$@"
